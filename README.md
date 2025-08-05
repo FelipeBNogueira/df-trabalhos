@@ -13,53 +13,51 @@ Pipeline em **Python + Pandas** que lê o `salaries.csv` original, traduz coluna
 - `salaries.csv` — arquivo original (fonte GitHub: [Clique aqui](https://raw.githubusercontent.com/FelipeBNogueira/df-trabalhos/main/salaries.csv))
 
 ## Como executar
+Pré-requisitos: `Python 3.10+` e `pandas`.
 
-**Pré-requisitos:** `Python 3.10+` e `pandas`.
-
-```bash
-# 1) (opcional) criar venv
+`1) (opcional) criar venv`
 python -m venv .venv
-# Windows:
+`Windows:`
 .venv\Scripts\activate
-# macOS/Linux:
+`macOS/Linux:`
 source .venv/bin/activate
 
-# 2) instalar dependências
+`2) instalar dependências`
 pip install -U pip pandas
 
-# 3) rodar o pipeline
+`3) rodar o pipeline`
 python script.py
-# saída: salaries_pt.csv (UTF-8-SIG)
+`saída: salaries_pt.csv (UTF-8-SIG)`
 
-```
-## Estrutura do projeto
-```df-trabalhos/
+## Estrutura do projeto 
+```bash
+df-trabalhos/
 ├─ README.md
 ├─ LICENSE
 ├─ CHANGELOG.md
 ├─ .gitignore
-├─ script.py # pipeline single-file
-├─ salaries.csv # fonte (baixado ou local)
-└─ salaries_pt.csv # saída (gerado)
+├─ script.py `pipeline single-file`
+├─ salaries.csv `fonte (baixado ou local)`
+└─ salaries_pt.csv `saída (gerado)`
 ```
 - `script.py` lê `salaries.csv`, traduz/normaliza e exporta `salaries_pt.csv`.
 - Se `salaries.csv` não existir, o script baixa do repositório (RAW).
 
  ## Roadmap
 ```
-• Conversão por **câmbio médio anual** (ano → taxa).
-• Ajuste por **PPP** (paridade de poder de compra).
-• Expandir `JOB_MAP` e `COUNTRY_MAP` automaticamente (relatório de faltantes).
+• Conversão por câmbio médio anual (ano → taxa).
+• Ajuste por PPP (paridade de poder de compra).
+• Expandir JOB_MAP e COUNTRY_MAP automaticamente (relatório de faltantes).
 • Medidas DAX extras (P10–P90, bandas por cargo/nível, prêmio remoto).
-• Template **Power BI** (.pbix) com visuais prontos.
-• Testes básicos para `apply_maps`.
+• Template Power BI(.pbix) com visuais prontos.
+• Testes básicos para apply_maps.
 ```
 ## Contribuição
 ```
 1. Faça um fork do repositório.
-2. Crie uma branch: `git checkout -b feature/minha-melhoria`
-3. Commit usando **Conventional Commits** (ex.: `feat: add PPP conversion`)
-4. Push: `git push origin feature/minha-melhoria`
+2. Crie uma branch: git checkout -b feature/minha-melhoria
+3. Commit usando Conventional Commits (ex.: feat: add PPP conversion)
+4. Push: git push origin feature/minha-melhoria
 5. Abra um Pull Request explicando o que mudou.
 ```
 > Padrões de commit: 
