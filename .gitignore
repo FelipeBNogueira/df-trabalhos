@@ -1,0 +1,36 @@
+# --- Python ---
+__pycache__/
+*.py[cod]
+*$py.class
+
+# Ambientes virtuais
+.venv/
+venv/
+
+# Notebooks/temporários
+.ipynb_checkpoints/
+.cache/
+
+# IDEs/OS
+.vscode/
+.idea/
+.DS_Store
+
+# Dependências de build/teste
+dist/
+build/
+*.egg-info/
+.pytest_cache/
+.mypy_cache/
+.pylint.d/
+.ruff_cache/
+
+# Variáveis de ambiente
+.env
+.env.*
+*.env
+
+# Dados/saídas geradas
+salaries_pt.csv
+outputs/
+reports/
