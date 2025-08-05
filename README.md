@@ -53,7 +53,7 @@ Este projeto está licenciado sob a **MIT License** — veja o arquivo [LICENSE]
 ## Contato
 [<img src="https://cdn.simpleicons.org/instagram/E4405F" alt="Instagram" width="28" height="28">](https://www.instagram.com/felipebnogueira/)
 &nbsp;
-[<img src="https://upload.wikimedia.org/wikipedia/commons/thumb/c/ca/LinkedIn_logo_initials.png/128px-LinkedIn_logo_initials.png" alt="LinkedIn" width="28" height="28">](https://www.linkedin.com/in/felipebnogueira/)
+[<img src="https://upload.wikimedia.org/wikipedia/commons/thumb/c/ca/LinkedIn_logo_initials.png/128px-LinkedIn_logo_initials.png" alt="LinkedIn" width="28" height="28">](https://www.linkedin.com/in/cfbn-adm/)
 
 Felipe Nogueira — [Clique aqui para acessar o meu site](https://potionsolutions.com)
 
