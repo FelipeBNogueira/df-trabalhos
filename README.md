@@ -1,3 +1,10 @@
+<p>
+  <a href="LICENSE"><img alt="License: MIT" src="https://img.shields.io/badge/License-MIT-green.svg"></a>
+  <img alt="Python 3.10+" src="https://img.shields.io/badge/Python-3.10%2B-blue.svg">
+  <img alt="Pandas 2.x" src="https://img.shields.io/badge/Pandas-2.x-006d5b.svg">
+</p>
+
+
 # df-trabalhos — Tradução e normalização de salários (PT-BR)
 
 Pipeline em **Python + Pandas** que lê o `salaries.csv` original, traduz colunas/categorias para PT-BR e exporta `salaries_pt.csv` pronto para **Power BI**.
@@ -38,4 +45,18 @@ Esquema (antes → depois)
 • Benchmark por país (mediana + contagem)
 • Efeito do porte (S/M/L) por cargo
 • Tendência YoY por área (Dados/ML/BI/Eng.)
-• Bandas P10–P25–P50–P75–P90 e % fora da banda 
+• Bandas P10–P25–P50–P75–P90 e % fora da banda
+```
+## Licença
+Este projeto está licenciado sob a **MIT License** — veja o arquivo [LICENSE](LICENSE).
+
+## Contato
+[<img src="https://cdn.simpleicons.org/instagram/E4405F" alt="Instagram" width="28" height="28">](https://www.instagram.com/felipebnogueira/)
+&nbsp;
+[<img src="https://upload.wikimedia.org/wikipedia/commons/thumb/c/ca/LinkedIn_logo_initials.png/128px-LinkedIn_logo_initials.png" alt="LinkedIn" width="28" height="28">](https://www.linkedin.com/in/felipebnogueira/)
+
+Felipe Nogueira — [Clique aqui para acessar o meu site](https://potionsolutions.com)
+
+
+
+
