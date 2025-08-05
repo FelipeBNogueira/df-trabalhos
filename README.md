@@ -51,17 +51,11 @@ Esquema (antes → depois)
 Este projeto está licenciado sob a **MIT License** — veja o arquivo [LICENSE](LICENSE).
 
 ## Contato
-<a href="https://www.instagram.com/felipebnogueira/" target="_blank" rel="noopener noreferrer" style="text-decoration: none;">
-  <img src="https://cdn.simpleicons.org/instagram/E4405F" alt="Instagram" width="28" height="28">
-</a>
+[<img src="https://cdn.simpleicons.org/instagram/E4405F" alt="Instagram" width="28" height="28">](https://www.instagram.com/felipebnogueira/)
 &nbsp;
-<a href="https://www.linkedin.com/in/cfbn-adm/" target="_blank" rel="noopener noreferrer" style="text-decoration: none;">
-  <img src="https://upload.wikimedia.org/wikipedia/commons/thumb/c/ca/LinkedIn_logo_initials.png/28px-LinkedIn_logo_initials.png" alt="LinkedIn" width="28" height="28">
-</a>
+[<img src="https://upload.wikimedia.org/wikipedia/commons/thumb/c/ca/LinkedIn_logo_initials.png/128px-LinkedIn_logo_initials.png" alt="LinkedIn" width="28" height="28">](https://www.linkedin.com/in/cfbn-adm/)
 
-<br>
-
-Felipe Nogueira — <a href="https://potionsolutions.com" target="_blank" rel="noopener noreferrer" style="text-decoration: none;">Clique aqui para acessar o meu site</a>
+Felipe Nogueira — [Clique aqui para acessar o meu site](https://potionsolutions.com)
 
 
 
