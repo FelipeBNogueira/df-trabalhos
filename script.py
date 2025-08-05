@@ -1,29 +1,12 @@
-#!/usr/bin/env python
-# -*- coding: utf-8 -*-
-"""
-df-trabalhos — Tradução e normalização do dataset de salários (PT-BR)
-
-- Lê o salaries.csv (local) ou baixa do raw do GitHub se não existir
-- Renomeia colunas
-- Traduz categorias (nível, contrato, modalidade, porte, país, cargo)
-- (Opcional) cria salario_brl a partir de salario_usd
-- Exporta salaries_pt.csv (UTF-8-SIG)
-"""
-
-import os
 import pandas as pd
 
-# -----------------------------
-# Config
-# -----------------------------
-RAW_URL = "https://raw.githubusercontent.com/FelipeBNogueira/df-trabalhos/main/salaries.csv"
-OUTPUT = "salaries_pt.csv"
-USD_BRL = None  # defina ex.: 5.50 para criar salario_brl
+## e aqui começa o show
 
-# -----------------------------
-# Dicionários (resumo)
-# -----------------------------
-RENAME = {
+# 1) lendo o csv dos salarios
+df = pd.read_csv("salaries.csv")
+
+# 2) aqui eu renomeio as colunas
+rename = {
     "work_year": "ano",
     "experience_level": "nivel_experiencia",
     "employment_type": "tipo_contrato",
@@ -36,129 +19,457 @@ RENAME = {
     "company_location": "local_empresa",
     "company_size": "porte_empresa",
 }
+df = df.rename(columns=rename)
 
-exp_map   = {"EN": "Júnior", "MI": "Pleno", "SE": "Sênior", "EX": "Diretoria"}
-emp_map   = {"FT": "Tempo integral", "PT": "Meio período", "CT": "Contrato", "FL": "Freelancer"}
-remote_map= {0: "Presencial", 50: "Híbrido", 100: "Remoto"}
-size_map  = {"S": "Pequena", "M": "Média", "L": "Grande"}
-
-currency_map = {"USD":"US$","EUR":"€","GBP":"£","BRL":"R$","CAD":"C$","AUD":"A$","MXN":"MXN","PHP":"PHP",
-                "PLN":"PLN","JPY":"JPY","INR":"INR","SGD":"SGD","HUF":"HUF","CHF":"CHF","TWD":"TWD","NOK":"NOK",
-                "CZK":"CZK","ZAR":"ZAR","DKK":"DKK","ILS":"ILS","TRY":"TRY","SEK":"SEK","NZD":"NZD","HKD":"HKD","THB":"THB","CLP":"CLP"}
-
+# 3) mapeando traduções(caso haja algo fora da lista, eu preciso ir mapeando)
+exp_map = {"EN": "Júnior", "MI": "Pleno", "SE": "Sênior", "EX": "Executivo"}
+emp_map = {"FT": "Tempo integral", "PT": "Meio período", "CT": "Contrato", "FL": "Freelancer"}
+remote_map = {0: "Presencial", 50: "Híbrido", 100: "Remoto"}
+size_map = {"S": "Pequena", "M": "Média", "L": "Grande"}
+currency_map = {"USD": "US$", "EUR": "€", "GBP": "£", "BRL": "R$", "CAD": "C$", "AUD": "A$"}
 country_map = {
     # América
-    "US":"EUA","CA":"Canadá","BR":"Brasil","MX":"México","AR":"Argentina","CL":"Chile","CO":"Colômbia","PE":"Peru","UY":"Uruguai","PY":"Paraguai",
-    "BO":"Bolívia","EC":"Equador","VE":"Venezuela","CR":"Costa Rica","PA":"Panamá","DO":"República Dominicana","PR":"Porto Rico","AS":"Samoa Americana",
-    "JM":"Jamaica","SV":"El Salvador","HN":"Honduras","BM":"Bermudas",
+    "US": "EUA", "CA": "Canadá", "BR": "Brasil", "MX": "México", "AR": "Argentina",
+    "CL": "Chile", "CO": "Colômbia", "PE": "Peru", "UY": "Uruguai", "PY": "Paraguai",
+    "BO": "Bolívia", "EC": "Equador", "VE": "Venezuela", "CR": "Costa Rica",
+    "PA": "Panamá", "DO": "República Dominicana", "PR": "Porto Rico", "AS": "Samoa Americana",
+    "JM": "Jamaica", "SV": "El Salvador", "HN": "Honduras", "BM": "Bermudas",
+
     # Europa
-    "GB":"Reino Unido","IE":"Irlanda","PT":"Portugal","ES":"Espanha","FR":"França","DE":"Alemanha","NL":"Países Baixos","BE":"Bélgica","CH":"Suíça","AT":"Áustria",
-    "IT":"Itália","PL":"Polônia","CZ":"Tchéquia","SK":"Eslováquia","HU":"Hungria","RO":"Romênia","BG":"Bulgária","GR":"Grécia","SE":"Suécia","NO":"Noruega",
-    "DK":"Dinamarca","FI":"Finlândia","EE":"Estônia","LV":"Letônia","LT":"Lituânia","UA":"Ucrânia","RU":"Rússia","SI":"Eslovênia","HR":"Croácia","RS":"Sérvia",
-    "JE":"Jersey","MT":"Malta","MK":"Macedônia do Norte","LU":"Luxemburgo","AD":"Andorra","MD":"Moldávia","BA":"Bósnia e Herzegovina","XK":"Kosovo",
-    "CY":"Chipre","TR":"Turquia","GE":"Geórgia",
+    "GB": "Reino Unido", "IE": "Irlanda", "PT": "Portugal", "ES": "Espanha", "FR": "França",
+    "DE": "Alemanha", "NL": "Países Baixos", "BE": "Bélgica", "CH": "Suíça", "AT": "Áustria",
+    "IT": "Itália", "PL": "Polônia", "CZ": "Tchéquia", "SK": "Eslováquia", "HU": "Hungria",
+    "RO": "Romênia", "BG": "Bulgária", "GR": "Grécia", "SE": "Suécia", "NO": "Noruega",
+    "DK": "Dinamarca", "FI": "Finlândia", "EE": "Estônia", "LV": "Letônia", "LT": "Lituânia",
+    "UA": "Ucrânia", "RU": "Rússia", "SI": "Eslovênia", "HR": "Croácia", "RS": "Sérvia",
+    "JE": "Jersey", "MT": "Malta", "MK": "Macedônia do Norte", "LU": "Luxemburgo",
+    "AD": "Andorra", "MD": "Moldávia", "BA": "Bósnia e Herzegovina", "XK": "Kosovo",
+    "CY": "Chipre", "TR": "Turquia", "GE": "Geórgia",
+
     # Ásia e Oceania
-    "IN":"Índia","CN":"China","JP":"Japão","SG":"Singapura","HK":"Hong Kong","TW":"Taiwan","KR":"Coreia do Sul","TH":"Tailândia","PH":"Filipinas","MY":"Malásia",
-    "ID":"Indonésia","VN":"Vietnã","PK":"Paquistão","BD":"Bangladesh","AE":"Emirados Árabes Unidos","QA":"Catar","KW":"Kuwait","SA":"Arábia Saudita","OM":"Omã",
-    "BH":"Bahrein","IL":"Israel","IQ":"Iraque","IR":"Irã","JO":"Jordânia","LB":"Líbano","AM":"Armênia","UZ":"Uzbequistão","AU":"Austrália","NZ":"Nova Zelândia",
+    "IN": "Índia", "CN": "China", "JP": "Japão", "SG": "Singapura", "HK": "Hong Kong",
+    "TW": "Taiwan", "KR": "Coreia do Sul", "TH": "Tailândia", "PH": "Filipinas",
+    "MY": "Malásia", "ID": "Indonésia", "VN": "Vietnã", "PK": "Paquistão",
+    "BD": "Bangladesh", "AE": "Emirados Árabes Unidos", "QA": "Catar", "KW": "Kuwait",
+    "SA": "Arábia Saudita", "OM": "Omã", "BH": "Bahrein", "IL": "Israel", "IQ": "Iraque",
+    "IR": "Irã", "JO": "Jordânia", "LB": "Líbano", "AM": "Armênia", "UZ": "Uzbequistão",
+    "AU": "Austrália", "NZ": "Nova Zelândia",
+
     # África
-    "ZA":"África do Sul","EG":"Egito","MA":"Marrocos","TN":"Tunísia","DZ":"Argélia","NG":"Nigéria","KE":"Quênia","LS":"Lesoto",
-    "CD":"República Democrática do Congo","ZM":"Zâmbia","RW":"Ruanda","UG":"Uganda","MU":"Maurício","GH":"Gana","CF":"República Centro-Africana",
+    "ZA": "África do Sul", "EG": "Egito", "MA": "Marrocos", "TN": "Tunísia", "DZ": "Argélia",
+    "NG": "Nigéria", "KE": "Quênia", "LS": "Lesoto", "CD": "República Democrática do Congo",
+    "ZM": "Zâmbia", "RW": "Ruanda", "UG": "Uganda", "MU": "Maurício",
+    "GH": "Gana", "CF": "República Centro-Africana"
 }
 
-# Apenas exemplos — cole seu JOB_MAP completo abaixo se quiser
 job_map = {
-    "Solutions Engineer": "Engenheiro de Soluções",
-    "Data Engineer": "Engenheiro de Dados",
     "Data Scientist": "Cientista de Dados",
-    "Data Analyst": "Analista de Dados",
+    "Data Engineer": "Engenheiro de Dados",
     "Machine Learning Engineer": "Engenheiro de Machine Learning",
-    # ... (adicione o restante do seu job_map aqui)
+    "ML Engineer": "Engenheiro de Machine Learning",
+    "Data Analyst": "Analista de Dados",
+    "Analytics Engineer": "Engenheiro de Analytics",
+    "BI Developer": "Desenvolvedor de BI",
+    "Business Intelligence Developer": "Desenvolvedor de BI",
+    "Research Scientist": "Pesquisador",
+    "Applied Scientist": "Cientista Aplicado",
+    "Software Engineer": "Engenheiro de Software",
+    "Systems Engineer": "Engenheiro de Sistemas",
+    "Solutions Engineer": "Engenheiro de Soluções",
+    "Director": "Diretor(a)",
+    "Consultant": "Consultor(a)",
+    "Associate": "Associado(a)",
+    "Analyst": "Analista",
+    "Product Manager": "Gerente de Produto",
+    "Software Developer": "Desenvolvedor de Software",
+    "Engineer": "Engenheiro",
+    "Developer": "Desenvolvedor",
+    "Data Specialist": "Especialista em Dados",
+    "Manager": "Gerente",
+    "Software Architect": "Arquiteto de Software",
+    "Data Management Analyst": "Analista de Gestão de Dados",
+    "Data Reporter": "Analista de Relatórios de Dados",
+    "Computational Biologist": "Biólogo Computacional",
+    "Product Designer": "Designer de Produto",
+    "Software Development Engineer": "Engenheiro de Desenvolvimento de Software",
+    "Architect": "Arquiteto",
+    "Data Analytics Manager": "Gerente de Análise de Dados",
+    "Principal Statistical Programmer": "Programador Estatístico Principal",
+    "Cloud Engineer": "Engenheiro de Nuvem",
+    "Data Architect": "Arquiteto de Dados",
+    "Product Owner": "Product Owner",
+    "Executive": "Executivo",
+    "Business Intelligence Engineer": "Engenheiro de Business Intelligence",
+    "Data Governance Lead": "Líder de Governança de Dados",
+    "Data Governance Specialist": "Especialista em Governança de Dados",
+    "AI Engineer": "Engenheiro de IA",
+    "Solutions Architect": "Arquiteto de Soluções",
+    "AI Researcher": "Pesquisador de IA",
+    "Bear Robotics": "Bear Robotics",
+    "Data Strategist": "Estrategista de Dados",
+    "Research Engineer": "Engenheiro de Pesquisa",
+    "Researcher": "Pesquisador",
+    "Business Analyst": "Analista de Negócios",
+    "Solution Engineer": "Engenheiro de Soluções",
+    "Full Stack Developer": "Desenvolvedor Full Stack",
+    "Product Analyst": "Analista de Produto",
+    "Full Stack Engineer": "Engenheiro Full Stack",
+    "Backend Engineer": "Engenheiro de Back-end",
+    "Sales Engineer": "Engenheiro de Vendas",
+    "Prompt Engineer": "Engenheiro de Prompt",
+    "Head of AI": "Head de IA",
+    "Platform Engineer": "Engenheiro de Plataforma",
+    "Engenheiro de Analytics": "Engenheiro de Analytics",
+    "Engineering Manager": "Gerente de Engenharia",
+    "BI Engineer": "Engenheiro de BI",
+    "Systems Administrator": "Administrador de Sistemas",
+    "Data Platform Engineer": "Engenheiro de Plataforma de Dados",
+    "Site Reliability Engineer": "Engenheiro de Confiabilidade de Site (SRE)",
+    "Computer Vision Engineer": "Engenheiro de Visão Computacional",
+    "Data Operations Analyst": "Analista de Operações de Dados",
+    "MLOps Engineer": "Engenheiro de MLOps",
+    "Solution Architect": "Arquiteto de Soluções",
+    "Data Product Owner": "Product Owner de Dados",
+    "Data Analytics Specialist": "Especialista em Análise de Dados",
+    "Artificial Intelligence Engineer": "Engenheiro de Inteligência Artificial",
+    "ML Scientist": "Cientista de Machine Learning",
+    "Data Governance Manager": "Gerente de Governança de Dados",
+    "Data Manager": "Gerente de Dados",
+    "Deep Learning Researcher": "Pesquisador de Deep Learning",
+    "Big Data Architect": "Arquiteto de Big Data",
+    "Computer Vision Software Engineer": "Engenheiro de Software de Visão Computacional",
+    "Marketing Data Engineer": "Engenheiro de Dados de Marketing",
+    "Data Science Tech Lead": "Líder Técnico de Data Science",
+    "Marketing Data Analyst": "Analista de Dados de Marketing",
+    "Principal Data Architect": "Arquiteto de Dados Principal",
+    "Data Analytics Engineer": "Engenheiro de Analytics",
+    "Bear Robotics": "Bear Robotics",
+    "Machine Learning Scientist": "Cientista de Machine Learning",
+    "Data Management": "Gestão de Dados",
+    "Data Lead": "Líder de Dados",
+    "System Engineer": "Engenheiro de Sistemas",
+    "Research Assistant": "Assistente de Pesquisa",
+    "Statistical Programmer": "Programador Estatístico",
+    "Data Analysis": "Análise de Dados",
+    "Data Quality Lead": "Líder de Qualidade de Dados",
+    "Head of Data": "Head de Dados",
+    "Data Quality Analyst": "Analista de Qualidade de Dados",
+    "Quantitative Analyst": "Analista Quantitativo",
+    "AI Developer": "Desenvolvedor de IA",
+    "Business Intelligence Specialist": "Especialista em Business Intelligence",
+    "Business Intelligence Analyst": "Analista de Business Intelligence",
+    "Data Modeler": "Modelador(a) de Dados",
+    "Analytics Lead": "Líder de Analytics",
+    "Creative Technologist": "Tecnologista Criativo(a)",
+    "Member of Technical Staff": "Membro da Equipe Técnica (MTS)",
+    "Quantitative Researcher": "Pesquisador Quantitativo",
+    "Data Integration Engineer": "Engenheiro de Integração de Dados",
+    "Data Management Specialist": "Especialista em Gestão de Dados",
+    "Postdoctoral Fellow": "Pesquisador(a) de Pós-Doutorado",
+    "Power BI Developer": "Desenvolvedor de Power BI",
+    "Data Product Manager": "Gerente de Produto de Dados",
+    "Technical Architect": "Arquiteto Técnico",
+    "Data Governance": "Governança de Dados",
+    "Actuary": "Atuário(a)",
+    "Big Data Developer": "Desenvolvedor de Big Data",
+    "Lead Engineer": "Engenheiro Líder",
+    "Technical Lead": "Líder Técnico",
+    "Encounter Data Management Professional": "Profissional de Gestão de Dados de Atendimentos",
+    "Data and Reporting Professional": "Profissional de Dados e Relatórios",
+    "Cloud Database Engineer": "Engenheiro de Banco de Dados em Nuvem",
+    "Tableau Developer": "Desenvolvedor de Tableau",
+    "Bioinformatics Specialist": "Especialista em Bioinformática",
+    "Business Intelligence": "Inteligência de Negócios",
+    "Research Associate": "Pesquisador(a) Associado(a)",
+    "Data Analytics Lead": "Líder de Análise de Dados",
+    "AI Specialist": "Especialista em IA",
+    "Data Visualization Specialist": "Especialista em Visualização de Dados",
+    "Computational Scientist": "Cientista Computacional",
+    "Data Developer": "Desenvolvedor de Dados",
+    "Data Governance Analyst": "Analista de Governança de Dados",
+    "DevOps Engineer": "Engenheiro de DevOps",
+    "Data Governance Engineer": "Engenheiro de Governança de Dados",
+    "AI Architect": "Arquiteto de IA",
+    "Data Operations": "Operações de Dados",
+    "Data Integrity Specialist": "Especialista em Integridade de Dados",
+    "Postdoctoral Researcher": "Pesquisador(a) de Pós-Doutorado",
+    "Statistician": "Estatístico(a)",
+    "Principal Researcher": "Pesquisador(a) Principal",
+    "QA Engineer": "Engenheiro de QA",
+    "Data Operations Lead": "Líder de Operações de Dados",
+    "Quantitative Developer": "Desenvolvedor Quantitativo",
+    "Account Executive": "Executivo de Contas",
+    "AI Scientist": "Cientista de IA",
+    "Data Management Lead": "Líder de Gestão de Dados",
+    "Machine Learning Specialist": "Especialista em Machine Learning",
+    "AI Content Writer": "Redator(a) de Conteúdo de IA",
+    "Psychometrician": "Psicométrico(a)",
+    "Director of Product Management": "Diretor(a) de Gerenciamento de Produto",
+    "Python Developer": "Desenvolvedor Python",
+    "Product Specialist": "Especialista de Produto",
+    "Automation Engineer": "Engenheiro de Automação",
+    "Decision Scientist": "Cientista de Decisão",
+    "AI Governance Specialist": "Especialista em Governança de IA",
+    "Data Steward": "Administrador(a) de Dados (Data Steward)",
+    "Sales Development Representative": "Representante de Desenvolvimento de Vendas (SDR)",
+    "Machine Learning Researcher": "Pesquisador de Machine Learning",
+    "AI Research Scientist": "Cientista de Pesquisa em IA",
+    "Insight Analyst": "Analista de Insights",
+    "Data Quality Engineer": "Engenheiro de Qualidade de Dados",
+    "Data & Analytics Analyst": "Analista de Dados e Analytics",
+    "Technical Specialist": "Especialista Técnico",
+    "Postdoctoral Research Fellow": "Pesquisador(a) de Pós-Doutorado",
+    "Director of Machine Learning": "Diretor(a) de Machine Learning",
+    "Bioinformatician": "Bioinformata",
+    "Principal Scientist": "Cientista Principal",
+    "AI Data Scientist": "Cientista de Dados de IA",
+    "Research Professional": "Profissional de Pesquisa",
+    "Power BI Administrator": "Administrador de Power BI",
+    "Data Consultant": "Consultor de Dados",
+    "Research Analyst": "Analista de Pesquisa",
+    "ETL Developer": "Desenvolvedor ETL",
+    "Analytics Specialist": "Especialista em Analytics",
+    "Economist": "Economista",
+    "Cheminformatics Scientist": "Cientista de Quimioinformática",
+    "Algorithm Developer": "Desenvolvedor de Algoritmos",
+    "Data Team Lead": "Líder de Equipe de Dados",
+    "Data Analist": "Analista de Dados",
+    "Technical Recruiter": "Recrutador Técnico",
+    "Data Governance Consultant": "Consultor de Governança de Dados",
+    "Web Developer": "Desenvolvedor Web",
+    "Data Visualization Engineer": "Engenheiro de Visualização de Dados",
+    "Head of Marketing": "Head de Marketing",
+    "Technical Support Specialist": "Especialista de Suporte Técnico",
+    "Post Doctoral Fellow": "Pesquisador(a) de Pós-Doutorado",
+    "Security Researcher": "Pesquisador de Segurança",
+    "AI Lead": "Líder de IA",
+    "AI Tech Lead": "Líder Técnico de IA",
+    "Bioinformatics Scientist": "Cientista de Bioinformática",
+    "Clinical Aide": "Auxiliar Clínico(a)",
+    "System Administrator": "Administrador de Sistemas",
+    "Data Operations Engineer": "Engenheiro de Operações de Dados",
+    "Data Infrastructure Engineer": "Engenheiro de Infraestrutura de Dados",
+    "AI Strategist": "Estrategista de IA",
+    "DataOps Engineer": "Engenheiro de DataOps",
+    "Application Developer": "Desenvolvedor de Aplicações",
+    "AI Product Lead": "Líder de Produto de IA",
+    "AI Solutions Specialist": "Especialista em Soluções de IA",
+    "Enterprise Account Executive": "Executivo de Contas Enterprise",
+    "Software Development Director": "Diretor(a) de Desenvolvimento de Software",
+    "BI Analyst": "Analista de BI",
+    "Advanced Data Analyst": "Analista de Dados Avançado",
+    "Head of Machine Learning": "Head de Machine Learning",
+    "Cloud Database Administrator": "Administrador de Banco de Dados em Nuvem",
+    "AI Engineering Lead": "Líder de Engenharia de IA",
+    "Data Reporting Specialist": "Especialista em Relatórios de Dados",
+    "Quant Trader": "Trader Quantitativo",
+    "Data Strategy Lead": "Líder de Estratégia de Dados",
+    "Copywriter": "Redator(a)",
+    "Integration Specialist": "Especialista em Integração",
+    "Database Administrator": "Administrador de Banco de Dados",
+    "Backend Developer": "Desenvolvedor Back-end",
+    "Business Development Representative": "Representante de Desenvolvimento de Negócios",
+    "Technical Writer": "Redator Técnico",
+    "AI Product Owner": "Product Owner de IA",
+    "Technical Support Engineer": "Engenheiro de Suporte Técnico",
+    "Head of Applied AI": "Head de IA Aplicada",
+    "Machine Learning Architect": "Arquiteto de Machine Learning",
+    "Java Developer": "Desenvolvedor Java",
+    "Principal Engineer": "Engenheiro Principal",
+    "Business Intelligence Lead": "Líder de Business Intelligence",
+    "Data Visualization Developer": "Desenvolvedor de Visualização de Dados",
+    "Data Integration Specialist": "Especialista em Integração de Dados",
+    "Data Management Associate": "Associado(a) de Gestão de Dados",
+    "Power BI Expert": "Especialista em Power BI",
+    "Marketing Science Partner": "Parceiro(a) de Ciência de Marketing",
+    "Data Operations Specialist": "Especialista em Operações de Dados",
+    "Salesforce Administrator": "Administrador do Salesforce",
+    "Chatbot Developer": "Desenvolvedor de Chatbot",
+    "Cloud Developer": "Desenvolvedor Cloud",
+    "Data Analytics Business Partner": "Business Partner de Analytics",
+    "Data Quality Expert": "Especialista em Qualidade de Dados",
+    "Data Integrator": "Integrador de Dados",
+    "Data Operator": "Operador de Dados",
+    "BI & Data Analyst": "Analista de BI e Dados",
+    "Network Engineer": "Engenheiro de Redes",
+    "Risk Analyst": "Analista de Risco",
+    "Data Integration Lead": "Líder de Integração de Dados",
+    "DevOps Lead": "Líder de DevOps",
+    "Data Product Lead": "Líder de Produto de Dados",
+    "Cloud Architect": "Arquiteto de Nuvem",
+    "Data Scientist Manager": "Gerente de Data Science",
+    "Robotics Engineer": "Engenheiro de Robótica",
+    "Power BI Specialist": "Especialista em Power BI",
+    "Data Management Consultant": "Consultor de Gestão de Dados",
+    "Stage": "Estagiário(a)",
+    "Data and Analytics Consultant": "Consultor de Dados e Analytics",
+    "Alternance": "Programa de Alternância",
+    "Big Data Engineer": "Engenheiro de Big Data",
+    "LLM Engineer": "Engenheiro de LLM",
+    "Quantitative Trader": "Trader Quantitativo",
+    "Machine Learning Lead": "Líder de Machine Learning",
+    "Data Integration Developer": "Desenvolvedor de Integração de Dados",
+    "Data Operations Manager": "Gerente de Operações de Dados",
+    "Data Archivist": "Arquivista de Dados",
+    "Developer Advocate": "Developer Advocate (DevRel)",
+    "RPA Developer": "Desenvolvedor de RPA",
+    "Research Team Lead": "Líder de Equipe de Pesquisa",
+    "Data Analytics Developer": "Desenvolvedor de Análise de Dados",
+    "Quant Options Trader": "Trader de Opções Quantitativo",
+    "Data Management Expert": "Especialista em Gestão de Dados",
+    "Conversational AI Designer": "Designer de IA Conversacional",
+    "Scala Spark Developer": "Desenvolvedor Scala/Spark",
+    "Business Intelligence Manager": "Gerente de Business Intelligence",
+    "Data Scientist Expert": "Cientista de Dados Especialista",
+    "Customer Success Engineer": "Engenheiro de Sucesso do Cliente",
+    "Data Visualization Designer": "Designer de Visualização de Dados",
+    "Experienced Quantitative Strategist": "Estrategista Quantitativo Experiente",
+    "Tech Lead Data": "Tech Lead de Dados",
+    "Data and Reporting Analyst": "Analista de Dados e Relatórios",
+    "AI Programmer": "Programador de IA",
+    "GenAI Architect": "Arquiteto de IA Generativa",
+    "Machine Learning Developer": "Desenvolvedor de Machine Learning",
+    "Data Reporting Analyst": "Analista de Relatórios de Dados",
+    "Data Integrity Analyst": "Analista de Integridade de Dados",
+    "Data Visualization Analyst": "Analista de Visualização de Dados",
+    "Lead Data Analysis": "Líder de Análise de Dados",
+    "Data Visualization Expert": "Especialista em Visualização de Dados",
+    "Customer Success Manager": "Gerente de Sucesso do Cliente",
+    "Actuarial Analyst": "Analista Atuarial",
+    "AI Governance Lead": "Líder de Governança de IA",
+    "Data Quality Specialist": "Especialista em Qualidade de Dados",
+    "AI Data Engineer": "Engenheiro de Dados de IA",
+    "Technology Integrator": "Integrador de Tecnologia",
+    "Principal Software Architect": "Arquiteto de Software Principal",
+    "Master Data Management": "Gestão de Dados Mestres",
+    "Staff Data Scientist": "Cientista de Dados Staff",
+    "AI Machine Learning Engineer": "Engenheiro de IA/ML",
+    "Lead Analyst": "Analista Líder",
+    "Data Analytics Consultant": "Consultor de Análise de Dados",
+    "Data Scientist Associate": "Cientista de Dados Associado",
+    "Clinical Data Operator": "Operador de Dados Clínicos",
+    "Research Data Manager": "Gerente de Dados de Pesquisa",
+    "Applied Research Scientist": "Cientista de Pesquisa Aplicada",
+    "Lead Data Management": "Líder de Gestão de Dados",
+    "Data Integration Analyst": "Analista de Integração de Dados",
+    "Safety Data Management Specialist": "Especialista em Gestão de Dados de Segurança",
+    "Big Data Analyst": "Analista de Big Data",
+    "Pricing Analyst": "Analista de Precificação",
+    "Lead Data Engineer": "Engenheiro de Dados Líder",
+    "AI Engineering Manager": "Gerente de Engenharia de IA",
+    "Data Management Coordinator": "Coordenador de Gestão de Dados",
+    "Analytics Analyst": "Analista de Analytics",
+    "Controls Engineer": "Engenheiro de Controle",
+    "Machine Learning Tech Lead": "Tech Lead de Machine Learning",
+    "Business Development Manager": "Gerente de Desenvolvimento de Negócios",
+    "Business Insights Manager": "Gerente de Insights de Negócios",
+    "Platform Data Engineer": "Engenheiro de Dados de Plataforma",
+    "Principal Application Delivery Consultant": "Consultor Principal de Entrega de Aplicações",
+    "Data Governance Architect": "Arquiteto de Governança de Dados",
+    "Power BI Consultant": "Consultor de Power BI",
+    "Backend Software Engineer": "Engenheiro de Software Back-end",
+    "AI Product Manager": "Gerente de Produto de IA",
+    "Data Operations Associate": "Associado(a) de Operações de Dados",
+    "ML Infrastructure Engineer": "Engenheiro de Infraestrutura de ML",
+    "Fullstack Engineer": "Engenheiro Full Stack",
+    "Machine Learning Quality Engineer": "Engenheiro de Qualidade de Machine Learning",
+    "Security Engineer": "Engenheiro de Segurança",
+    "Databricks Engineer": "Engenheiro Databricks",
+    "Infrastructure Engineer": "Engenheiro de Infraestrutura",
+    "Machine Learning Performance Engineer": "Engenheiro de Performance de Machine Learning",
+    "Data Analytics Associate": "Associado(a) de Análise de Dados",
+    "Power BI Architect": "Arquiteto de Power BI",
+    "Machine Learning Platform Engineer": "Engenheiro de Plataforma de Machine Learning",
+    "AI Solution Architect": "Arquiteto de Soluções de IA",
+    "Data Scientist Lead": "Líder de Data Science",
+    "Machine Vision Engineer": "Engenheiro de Visão de Máquina",
+    "Machine Learning Model Engineer": "Engenheiro de Modelos de Machine Learning",
+    "Marketing Analyst": "Analista de Marketing",
+    "Data Management Manager": "Gerente de Gestão de Dados",
+    "Marketing Analytics Manager": "Gerente de Analytics de Marketing",
+    "Applied AI ML Lead": "Líder de IA/ML Aplicada",
+    "Data Strategy Manager": "Gerente de Estratégia de Dados",
+    "Machine Learning Manager": "Gerente de Machine Learning",
+    "Data Product Analyst": "Analista de Produto de Dados",
+    "Data Quality Manager": "Gerente de Qualidade de Dados",
+    "Elasticsearch Administrator": "Administrador de Elasticsearch",
+    "Machine Learning Infrastructure Engineer": "Engenheiro de Infraestrutura de Machine Learning",
+    "People Data Analyst": "Analista de Dados de Pessoas (People Analytics)",
+    "Frontend Engineer": "Engenheiro Front-end",
+    "NLP Engineer": "Engenheiro de PLN (NLP)",
+    "SAS Developer": "Desenvolvedor SAS",
+    "Data Analytics Team Lead": "Líder de Time de Análise de Dados",
+    "Machine Learning Modeler": "Modelador de Machine Learning",
+    "Data Integration Coordinator": "Coordenador de Integração de Dados",
+    "Admin & Data Analyst": "Administrador(a) e Analista de Dados",
+    "Head of Business Intelligence": "Head de Business Intelligence",
+    "ETL Engineer": "Engenheiro ETL",
+    "AI Research Engineer": "Engenheiro de Pesquisa em IA",
+    "Business Intelligence Consultant": "Consultor de Business Intelligence",
+    "Robotics Software Engineer": "Engenheiro de Software de Robótica",
+    "AI Software Engineer": "Engenheiro de Software de IA",
+    "Lead AI Engineer": "Engenheiro de IA Líder",
+    "AI Software Development Engineer": "Engenheiro de Desenvolvimento de Software de IA",
+    "Master Data Specialist": "Especialista em Dados Mestres",
+    "Consultant Data Engineer": "Engenheiro de Dados Consultor",
+    "Manager Data Management": "Gerente de Gestão de Dados",
+    "Director of Business Intelligence": "Diretor(a) de Business Intelligence",
+    "Lead Data Scientist": "Cientista de Dados Líder",
+    "CRM Data Analyst": "Analista de Dados de CRM",
+    "BI Data Analyst": "Analista de Dados de BI",
+    "Applied Data Scientist": "Cientista de Dados Aplicado",
+    "Data DevOps Engineer": "Engenheiro de Data DevOps",
+    "Quantitative Research Analyst": "Analista de Pesquisa Quantitativa",
+    "Lead Machine Learning Engineer": "Engenheiro de Machine Learning Líder",
+    "Machine Learning Research Engineer": "Engenheiro de Pesquisa em Machine Learning",
+    "Data Analyst Lead": "Líder de Analistas de Dados",
+    "Data Pipeline Engineer": "Engenheiro de Pipeline de Dados",
+    "Lead Data Analyst": "Analista de Dados Líder",
+    "Business Data Analyst": "Analista de Dados de Negócios",
+    "Marketing Data Scientist": "Cientista de Dados de Marketing",
+    "Deep Learning Engineer": "Engenheiro de Deep Learning",
+    "Financial Data Analyst": "Analista de Dados Financeiros",
+    "Azure Data Engineer": "Engenheiro de Dados Azure",
+    "Principal Data Scientist": "Cientista de Dados Principal",
+    "Staff Data Analyst": "Analista de Dados Staff",
+    "Machine Learning Software Engineer": "Engenheiro de Software de Machine Learning",
+    "Applied Machine Learning Scientist": "Cientista de Machine Learning Aplicado",
+    "Principal Machine Learning Engineer": "Engenheiro Principal de Machine Learning",
+    "Principal Data Engineer": "Engenheiro de Dados Principal",
+    "Staff Machine Learning Engineer": "Engenheiro de Machine Learning Staff",
+    "Business Intelligence Data Analyst": "Analista de Dados de Business Intelligence",
+    "Finance Data Analyst": "Analista de Dados de Finanças",
+    "Software Data Engineer": "Engenheiro de Dados de Software",
+    "Cloud Data Engineer": "Engenheiro de Dados em Nuvem",
+    "Analytics Engineering Manager": "Gerente de Engenharia de Analytics",
+    "AWS Data Architect": "Arquiteto de Dados AWS",
+    "Product Data Analyst": "Analista de Dados de Produto",
+    "Autonomous Vehicle Technician": "Técnico em Veículo Autônomo",
+    "Sales Data Analyst": "Analista de Dados de Vendas",
+    "Applied Machine Learning Engineer": "Engenheiro de Machine Learning Aplicado",
+    "BI Data Engineer": "Engenheiro de Dados de BI",
+    "Cloud Data Architect": "Arquiteto de Dados em Nuvem",
+    "Principal Data Analyst": "Analista de Dados Principal",
+
+    
 }
 
-CATEGORY_ORDERS = {
-    "nivel_experiencia": ["Júnior", "Pleno", "Sênior", "Diretoria"],
-    "Modalidade": ["Presencial", "Híbrido", "Remoto"],
-    "porte_empresa": ["Pequena", "Média", "Grande"],
-}
+# 4) aplicando as traduções
+df["nivel_experiencia"]      = df["nivel_experiencia"].map(exp_map).fillna(df["nivel_experiencia"])
+df["tipo_contrato"]          = df["tipo_contrato"].map(emp_map).fillna(df["tipo_contrato"])
+df["Modalidade"]             = df["Modalidade"].map(remote_map).fillna(df["Modalidade"])
+df["porte_empresa"]          = df["porte_empresa"].map(size_map).fillna(df["porte_empresa"])
+df["moeda"]                  = df["moeda"].map(currency_map).fillna(df["moeda"])
+df["residencia_funcionario"] = df["residencia_funcionario"].map(country_map).fillna(df["residencia_funcionario"])
+df["local_empresa"]          = df["local_empresa"].map(country_map).fillna(df["local_empresa"])
+df["cargo"]                  = df["cargo"].replace(job_map)  # mantém original se não encontrar
 
-# -----------------------------
-# Funções
-# -----------------------------
-def load_data() -> pd.DataFrame:
-    """Lê salaries.csv local; se não existir, baixa do RAW do GitHub."""
-    if os.path.exists("salaries.csv"):
-        return pd.read_csv("salaries.csv")
-    df = pd.read_csv(RAW_URL)
-    df.to_csv("salaries.csv", index=False)  # cache local
-    return df
+# 5) salvar novo csv, agora traduzido (utf-8-sig ajuda no Excel com acentos)
+df.to_csv("salaries_pt.csv", index=False, encoding="utf-8-sig")
+print("Pronto meu chapa, agora o df salários está atualizado para Portugueishons")
 
-def apply_maps(df: pd.DataFrame) -> pd.DataFrame:
-    """Aplica renome e traduções. Mantém original quando não houver mapeamento."""
-    df = df.rename(columns=RENAME).copy()
-
-    # limpeza leve
-    for col in ["residencia_funcionario", "local_empresa", "moeda", "cargo"]:
-        if col in df.columns:
-            df[col] = df[col].astype(str).str.strip()
-
-    # mapas simples
-    if "nivel_experiencia" in df: df["nivel_experiencia"] = df["nivel_experiencia"].replace(exp_map)
-    if "tipo_contrato" in df:     df["tipo_contrato"]     = df["tipo_contrato"].replace(emp_map)
-    if "porte_empresa" in df:     df["porte_empresa"]     = df["porte_empresa"].replace(size_map)
-    if "moeda" in df:             df["moeda"]             = df["moeda"].replace(currency_map)
-
-    # modalidade: garantir numérico 0/50/100
-    if "Modalidade" in df:
-        df["Modalidade"] = pd.to_numeric(df["Modalidade"], errors="ignore").replace(remote_map)
-
-    # países (mapear somente códigos; se já estiver PT-BR, mantém)
-    for col in ["residencia_funcionario", "local_empresa"]:
-        if col in df:
-            mapped = df[col].str.upper().replace(country_map)
-            df[col] = mapped
-
-    # cargos (grande — manter replace)
-    if "cargo" in df:
-        df["cargo"] = df["cargo"].replace(job_map)
-
-    # setar ordem categórica
-    for col, order in CATEGORY_ORDERS.items():
-        if col in df.columns:
-            df[col] = pd.Categorical(df[col], categories=order, ordered=True)
-
-    # tipos
-    for col in ["ano", "salario", "salario_usd"]:
-        if col in df.columns:
-            df[col] = pd.to_numeric(df[col], errors="coerce")
-
-    return df
-
-def add_brl(df: pd.DataFrame, usd_brl: float | None) -> pd.DataFrame:
-    """Cria salario_brl se a taxa for informada."""
-    if usd_brl and "salario_usd" in df:
-        df["salario_brl"] = (df["salario_usd"] * float(usd_brl)).round(0)
-    return df
-
-def report_unmapped(df: pd.DataFrame):
-    """Mostra valores possivelmente não mapeados (país/cargo)."""
-    def missing(series, mapping):
-        s = series.dropna().astype(str).str.strip()
-        return sorted(set(s.unique()) - set(mapping.keys()) - set(mapping.values()))
-    if "residencia_funcionario" in df: print("País (resid.):", missing(df["residencia_funcionario"], country_map)[:20])
-    if "local_empresa" in df:          print("País (empresa):", missing(df["local_empresa"], country_map)[:20])
-    if "cargo" in df:
-        cargos = df["cargo"].dropna().unique()
-        not_done = sorted(set(cargos) - set(job_map.keys()) - set(job_map.values()))
-        print("Cargos possivelmente não mapeados:", not_done[:20])
-
-# -----------------------------
-# Main
-# -----------------------------
-if __name__ == "__main__":
-    df = load_data()
-    df = apply_maps(df)
-    df = add_brl(df, USD_BRL)  # defina USD_BRL acima se quiser BRL
-    report_unmapped(df)        # opcional
-    df.to_csv(OUTPUT, index=False, encoding="utf-8-sig")
-    print(f"{OUTPUT} gerado ✅")
+# Não esquece de me seguir e acompanhar os próximos conteúdos!!
+# Instagram: instagram.com/felipebnogueira/
+# Github: https://github.com/FelipeBNogueira
+# Linkedin: linkedin.com/in/cfbn-adm
+# Meu site: Potionsolutions.com
