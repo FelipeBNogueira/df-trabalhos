@@ -13,14 +13,24 @@ Pipeline em **Python + Pandas** que lê o `salaries.csv` original, traduz coluna
 - `salaries.csv` — arquivo original (fonte GitHub: [Clique aqui](https://raw.githubusercontent.com/FelipeBNogueira/df-trabalhos/main/salaries.csv))
 
 ## Como executar
-```bash
-python script.py
-# saída: salaries_pt.csv
 
-Decisões de modelagem (resumo)
-• Base de análise: salario_usd; BRL apenas para exibição (opcional salario_brl).
-• Traduções via dicionários; valores não mapeados são preservados.
-• Categorias ordenadas: nível (Jr→Pl→Sr→Dir), modalidade (Pres→Híb→Rem), porte (P→M→G).
+**Pré-requisitos:** `Python 3.10+` e `pandas`.
+
+```bash
+# 1) (opcional) criar venv
+python -m venv .venv
+# Windows:
+.venv\Scripts\activate
+# macOS/Linux:
+source .venv/bin/activate
+
+# 2) instalar dependências
+pip install -U pip pandas
+
+# 3) rodar o pipeline
+python script.py
+# saída: salaries_pt.csv (UTF-8-SIG)
+
 ```
 Esquema (antes → depois)
 | Original             | PT-BR                    | Tipo/Notas                   |
